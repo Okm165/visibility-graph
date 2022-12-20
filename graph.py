@@ -1,6 +1,3 @@
-from collections import defaultdict
-
-
 class Vertex:
     def __init__(self, x, y) -> None:
         self.x = float(x)
