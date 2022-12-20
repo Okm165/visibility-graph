@@ -1,12 +1,14 @@
 from math import sqrt
 from graph import Vertex
 
+ZERO_TOLERANCE = 10**(-6)
+
 def ccw(A, B, C):
     """ Return 1 if counter clockwise, -1 if clock wise, 0 if collinear """
     det = (A.x-C.x) * (B.y-C.y) - (B.x-C.x) * (A.y-C.y)
-    if det > 0:
+    if det > ZERO_TOLERANCE:
         return 1
-    if det < 0:
+    if det < -ZERO_TOLERANCE:
         return -1
     return 0
 
