@@ -1,9 +1,11 @@
+from functools import cmp_to_key
 from math import sqrt
 from graph import Vertex
 
+
 def ccw(A, B, C):
-    """ Return 1 if counter clockwise, -1 if clock wise, 0 if collinear """
-    det = (A.x-C.x) * (B.y-C.y) - (B.x-C.x) * (A.y-C.y)
+    """ Return 1 if counter-clockwise, -1 if clock wise, 0 if collinear """
+    det = (A.x - C.x) * (B.y - C.y) - (B.x - C.x) * (A.y - C.y)
     if det > 0:
         return 1
     if det < 0:
@@ -46,10 +48,30 @@ def edge_intersect(edge1, edge2):
 
 def distance(v1, v2):
     """ Return the Euclidean distance between two vertices. """
-    return sqrt((v2.x - v1.x)**2 + (v2.y - v1.y)**2)
+    return sqrt((v2.x - v1.x) ** 2 + (v2.y - v1.y) ** 2)
 
 
 def unit_vector(v1, v2):
     """ Normalize vector between vector v1 and v2 """
     magnitude = distance(v1, v2)
     return Vertex((v2.x - v1.x) / magnitude, (v2.y - v1.y) / magnitude)
+
+
+def sort_by_angle(p, points):
+    """ Returns points sorted by angle from p point perspective"""
+
+    # needs check
+    def orient_sort(b, c):
+        nonlocal p
+        res = (b.x - p.x) * (c.y - p.y) - (b.y - p.y) * (c.x - p.x)
+        if res > 0:
+            return 1
+        elif res < 0:
+            return -1
+
+        elif distance(p, b) > distance(p, c):
+            return -1
+        else:
+            return 1
+
+    return sorted(points, key=cmp_to_key(orient_sort))
