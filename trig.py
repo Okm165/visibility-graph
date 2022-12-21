@@ -10,7 +10,7 @@ def ccw(A, B, C):
     det = (A.x-C.x) * (B.y-C.y) - (B.x-C.x) * (A.y-C.y)
     if det > ZERO_TOLERANCE:
         return 1
-    if det < -ZERO_TOLERANCE:
+    elif det < -ZERO_TOLERANCE:
         return -1
     return 0
 
@@ -58,22 +58,31 @@ def unit_vector(v1, v2):
     magnitude = distance(v1, v2)
     return Vertex((v2.x - v1.x) / magnitude, (v2.y - v1.y) / magnitude)
 
+def cmp_angles(O, A, B):
+    """ Compare relative angle wrt to O, A to B """
+    return ccw(B, A, O)
 
-def sort_by_angle(p, points):
-    """ Returns points sorted by angle from p point perspective"""
+def cmp_distance(O, A, B):
+    """ Compare relative distance wrt to O, A to B """
+    d_OA = distance(O, A)
+    d_OB = distance(O, B)
 
-    # needs check
-    def orient_sort(b, c):
-        nonlocal p
-        res = (b.x - p.x) * (c.y - p.y) - (b.y - p.y) * (c.x - p.x)
-        if res > 0:
-            return 1
-        elif res < 0:
-            return -1
+    if d_OA - d_OB > ZERO_TOLERANCE:
+        return 1
+    elif d_OA - d_OB < -ZERO_TOLERANCE:
+        return -1
+    return 0 
 
-        elif distance(p, b) > distance(p, c):
-            return -1
-        else:
-            return 1
+def cmp_angle_distance(O, A, B):
+    """ Sort by relative angle and relative distance from O vertex perspective """
+    cmp = cmp_angles(O, A, B)
+    if cmp != 0: return cmp
+    else: return cmp_distance(O, A, B)
 
-    return sorted(points, key=cmp_to_key(orient_sort))
+def cmp_angle_distance_factory(O):
+    """ Creates function that has O vertex encoded inside, useful for sorting function """
+    return lambda A, B: cmp_angle_distance(O ,A ,B)
+
+def sort_by_angle_distance(O, verts):
+    """ Returns vertecies sorted by angle from O vertex perspective"""
+    return sorted(verts, key=cmp_to_key(cmp_angle_distance_factory(O)))
