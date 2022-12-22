@@ -152,3 +152,39 @@ def cmp_edges(p: Edge, e1: Edge, e2: Edge):
                 return 1
             else:
                 return 0
+
+
+class EdgeSet:
+    def __init__(self):
+        self._edges = []
+
+    def insert(self, p, edge):
+        self._edges.insert(self._index(p, edge), edge)
+
+    def delete(self, p, edge):
+        index = self._index(p, edge) - 1
+        if self._edges[index] == edge:
+            del self._edges[index]
+
+    def smallest(self):
+        return self._edges[0]
+
+    def largest(self):
+        return self._edges[len(self._edges-1)]
+
+    def _index(self, p, edge):
+        lo = 0
+        hi = len(self._edges)
+        while lo < hi:
+            mid = (lo+hi)//2
+            if cmp_edges(p, edge, self._edges[mid]) < 0:
+                hi = mid
+            else:
+                lo = mid + 1
+        return lo
+
+    def __len__(self):
+        return len(self._edges)
+
+    def __getitem__(self, index):
+        return self._edges[index]
