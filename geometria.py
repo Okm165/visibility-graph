@@ -8,7 +8,7 @@ import json as js
 
 # Parametr określający jak blisko (w odsetku całego widocznego zakresu) punktu początkowego 
 # wielokąta musimy kliknąć, aby go zamknąć.
-TOLERANCE = 0.15
+TOLERANCE = 1
 
 def dist(point1, point2):
     return np.sqrt(np.power(point1[0] - point2[0], 2) + np.power(point1[1] - point2[1], 2))
