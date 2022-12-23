@@ -2,20 +2,12 @@ from collections import defaultdict
 
 
 class Vertex:
-    def __init__(self, id, x, y) -> None:
+    def __init__(self, x, y) -> None:
         self.x = float(x)
         self.y = float(y)
-        self.neighbours = set()
-        self.id = id        # for debugging
 
-    def add(self, vertex):
-        self.neighbours.add(vertex)
-
-    def remove(self, vertex):
-        self.neighbours.remove(vertex)
-
-    def clear(self):
-        self.neighbours.clear()
+    def __mul__(self, val):
+        return Vertex(self.x*val, self.y*val)
 
     def __eq__(self, vertex):
         return vertex and self.x == vertex.x and self.y == vertex.y
@@ -24,10 +16,10 @@ class Vertex:
         return not self.__eq__(vertex)
 
     def __str__(self):
-        return "(%d, %.3f, %.3f)" % (self.id, self.x, self.y)
+        return "(%.3f, %.3f)" % (self.x, self.y)
 
     def __repr__(self):
-        return "Vertex(%d, %.3f, %.3f)" % (self.id, self.x, self.y)
+        return "Vertex(%.3f, %.3f)" % (self.x, self.y)
 
     def __hash__(self):
         return self.x.__hash__() ^ self.y.__hash__()
@@ -37,9 +29,11 @@ class Edge:
     def __init__(self, vertex1, vertex2):
         self.v1 = vertex1
         self.v2 = vertex2
-        # make them neighbours
-        self.v1.neighbours.add(self.v2)
-        self.v2.neighbours.add(self.v1)
+
+    def get_adjacent(self, vert):
+        if vert == self.v1:
+            return self.v2
+        return self.v1
 
     def __contains__(self, vertex):
         return self.v1 == vertex or self.v2 == vertex
@@ -69,24 +63,24 @@ class Graph:
         self.graph = defaultdict(set)
         self.edges = set()
 
-        vert_cnt = 0
         for fig in figs:
             lines = fig.lines
-            first_vert = Vertex(vert_cnt, lines[0][0][0], lines[0][0][1])
+            first_vert = Vertex(lines[0][0][0], lines[0][0][1])
             prev_vert = first_vert
-            vert_cnt += 1
             for i in range(len(lines)-1):
                 next = lines[(i + 1) % len(lines)]
-                next_vert = Vertex(vert_cnt, next[0][0], next[0][1])
+                next_vert = Vertex(next[0][0], next[0][1])
                 edge = Edge(prev_vert, next_vert)
                 prev_vert = next_vert
                 self.add_edge(edge)
-                vert_cnt += 1
             edge = Edge(prev_vert, first_vert)
             self.add_edge(edge)
 
     def get_adjacent_edges(self, vert):
         return list(self[vert])
+
+    def get_adjacent_verticies(self, vert):
+        return [edge.get_adjacent(vert) for edge in self[vert]]
 
     def get_verticies(self):
         return list(self.graph)
@@ -103,8 +97,8 @@ class Graph:
         res = ""
         for vertex in self.graph:
             res += "\n" + str(vertex) + ": {"
-            for neighbour in vertex.neighbours:
-                res += str(neighbour)
+            for edge in self.graph[vertex]:
+                res += str(edge)
             res += "}"
         return res
 
@@ -117,3 +111,8 @@ class Graph:
         if isinstance(item, Edge):
             return item in self.edges
         return False
+
+    def __getitem__(self, item):
+        if item in self.graph:
+            return self.graph[item]
+        return set()
