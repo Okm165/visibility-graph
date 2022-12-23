@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from functools import cmp_to_key
 from math import sqrt
-from graph import Vertex, Edge
+from vertex_edge import Vertex, Edge
 
 
 ZERO_TOLERANCE = 10**(-6)
