@@ -2,20 +2,22 @@ from __future__ import annotations
 
 from functools import cmp_to_key
 from math import sqrt
-from vertex_edge import Vertex, Edge
+from graph import Vertex, Edge
 
 
-ZERO_TOLERANCE = 10**(-6)
+INTER_ZT = 10**(-3)
+DIST_ZT = 10**(-4)
 
 
 def ccw(A: Vertex, B: Vertex, C: Vertex):
     """ Return 1 if counter clockwise, -1 if clock wise, 0 if collinear """
     det = (A.x-C.x) * (B.y-C.y) - (B.x-C.x) * (A.y-C.y)
-    if det > ZERO_TOLERANCE:
+    if det > 0:
         return 1
-    elif det < -ZERO_TOLERANCE:
+    elif det < 0:
         return -1
-    return 0
+    else:
+        return 0
 
 
 def on_segment(p: Vertex, q: Vertex, r: Vertex):
@@ -62,9 +64,26 @@ def unit_vector(v1: Vertex, v2: Vertex):
     return Vertex((v2.x - v1.x) / magnitude, (v2.y - v1.y) / magnitude)
 
 
+def cross(v1: Vertex, v2: Vertex):
+    return v1.x * v2.y - v2.x * v1.y
+
+
+def dot(v1: Vertex, v2: Vertex):
+    return v1.x * v2.x + v1.y * v2.y
+
+
+def edge_in_polygon(O, vert, graph):
+    """Return true if the edge from O to vert goes into polygon"""
+    a = graph.get_adjacent_verticies(O)
+    a.append(vert)
+    a = sorted(a, key=cmp_to_key(cmp_angle_distance_factory(O)))
+    return a[1] == vert
+
+
 def cmp_angles(O: Vertex, A: Vertex, B: Vertex):
     """ Compare relative angle wrt to O, A to B """
-    return ccw(B, A, O)
+    # return ccw(B, A, O)
+    return ccw(O, A, B)
 
 
 def cmp_distance(O: Vertex, A: Vertex, B: Vertex):
@@ -72,11 +91,12 @@ def cmp_distance(O: Vertex, A: Vertex, B: Vertex):
     d_OA = distance(O, A)
     d_OB = distance(O, B)
 
-    if d_OA - d_OB > ZERO_TOLERANCE:
+    if d_OA > d_OB:
         return 1
-    elif d_OA - d_OB < -ZERO_TOLERANCE:
+    elif d_OA < d_OB:
         return -1
-    return 0
+    else:
+        return 0
 
 
 def cmp_angle_distance(O: Vertex, A: Vertex, B: Vertex):
@@ -100,22 +120,25 @@ def sort_by_angle_distance(O: Vertex, verts: list):
 
 def edge_intersect_vertex(e1: Edge, e2: Edge) -> Vertex | None:
     """ Return intersect Vertex where the edge e1 crosses e2 if not crossing None """
-    tdiv = (e1.s.x-e1.e.x)*(e2.s.y-e2.e.y)-(e1.s.y-e1.e.y)*(e2.s.x-e2.e.x)
+    tdiv = (e1.v1.x-e1.v2.x)*(e2.v1.y-e2.v2.y) - \
+        (e1.v1.y-e1.v2.y)*(e2.v1.x-e2.v2.x)
     if tdiv == 0:
         return None
 
-    t = ((e1.s.x-e2.s.x)*(e2.s.y-e2.e.y)-(e1.s.y-e2.s.y)*(e2.s.x-e2.e.x)) / tdiv
-    if not 0 <= t or not t <= 1:
+    t = ((e1.v1.x-e2.v1.x)*(e2.v1.y-e2.v2.y) -
+         (e1.v1.y-e2.v1.y)*(e2.v1.x-e2.v2.x)) / tdiv
+    if not -INTER_ZT <= t or not t <= 1+INTER_ZT:
         return None
 
-    u = ((e1.s.x-e2.s.x)*(e1.s.y-e1.e.y)-(e1.s.y-e2.s.y)*(e1.s.x-e1.e.x)) / tdiv
-    if not 0 <= u or not u <= 1:
+    u = ((e1.v1.x-e2.v1.x)*(e1.v1.y-e1.v2.y) -
+         (e1.v1.y-e2.v1.y)*(e1.v1.x-e1.v2.x)) / tdiv
+    if not -INTER_ZT <= u or not u <= 1+INTER_ZT:
         return None
 
-    return Vertex(e1.s.x+t*(e1.e.x-e1.s.x), e1.s.y+t*(e1.e.y-e1.s.y))
+    return Vertex(e1.v1.x+t*(e1.v2.x-e1.v1.x), e1.v1.y+t*(e1.v2.y-e1.v1.y))
 
 
-def edge_distance(e1: Edge, e2: Edge) -> int:
+def edge_distance(e1: Edge, e2: Edge):
     """ Returns distance from begining of e1 to intersection of e1 and e2 """
     v = edge_intersect_vertex(e1, e2)
     if v is not None:
@@ -127,33 +150,31 @@ def cmp_edges(p: Edge, e1: Edge, e2: Edge):
     """ Compare e1 to e2 relative to edge p """
     if e1 == e2:
         return 0
-    if not edge_intersect(p, e2):
-        return 1
     d_p_e1 = edge_distance(p, e1)
     d_p_e2 = edge_distance(p, e2)
-    if d_p_e1 - d_p_e2 > ZERO_TOLERANCE:
-        return -1
-    elif d_p_e1 - d_p_e2 < -ZERO_TOLERANCE:
+    if d_p_e1 - d_p_e2 > DIST_ZT:
         return 1
+    elif d_p_e1 - d_p_e2 < -DIST_ZT:
+        return -1
     else:
         # if distances are equal compare slopes
-        uv_e1 = unit_vector(e1.v1, e1.v2)
-        uv_e2 = unit_vector(e2.v1, e2.v2)
-        s = cmp_angles(Vertex(0, 0), uv_e1, uv_e2)
-        if s > ZERO_TOLERANCE:
+        if e1.v1 in e2:
+            same_point = e1.v1
+        else:
+            same_point = e1.v2
+
+        uv_p = unit_vector(p.v1, p.v2)
+        uv_e1 = unit_vector(same_point, e1.get_adjacent(same_point))
+        uv_e2 = unit_vector(same_point, e2.get_adjacent(same_point))
+        duv = Vertex(uv_e2.x - uv_e1.x, uv_e2.y - uv_e1.y)
+        dot_p_duv = dot(uv_p, duv)
+
+        if dot_p_duv > 0:
             return -1
-        elif s < -ZERO_TOLERANCE:
+        elif dot_p_duv < 0:
             return 1
         else:
-            # if slopes are equal compare lengths
-            l_e1 = distance(e1.v1, e1.v2)
-            l_e2 = distance(e2.v1, e2.v2)
-            if l_e1 - l_e2 > ZERO_TOLERANCE:
-                return -1
-            elif l_e1 - l_e2 < -ZERO_TOLERANCE:
-                return 1
-            else:
-                return 0
+            return 0
 
 
 class EdgeSet:
@@ -161,11 +182,14 @@ class EdgeSet:
         self._edges = []
 
     def insert(self, p, edge):
-        self._edges.insert(self._index(p, edge), edge)
+        index = self._index(p, edge)
+        if index < len(self._edges) and self._edges[index] == edge:
+            return
+        self._edges.insert(index, edge)
 
     def delete(self, p, edge):
-        index = self._index(p, edge) - 1
-        if self._edges[index] == edge:
+        index = self._index(p, edge)
+        if index < len(self._edges) and self._edges[index] == edge:
             del self._edges[index]
 
     def smallest(self):
@@ -178,9 +202,12 @@ class EdgeSet:
         lo = 0
         hi = len(self._edges)
         while lo < hi:
-            mid = (lo+hi)//2
-            if cmp_edges(p, edge, self._edges[mid]) < 0:
+            mid = (hi+lo)//2
+            cmp = cmp_edges(p, edge, self._edges[mid])
+            if cmp < 0:
                 hi = mid
+            elif cmp == 0:
+                return mid
             else:
                 lo = mid + 1
         return lo
@@ -190,3 +217,9 @@ class EdgeSet:
 
     def __getitem__(self, index):
         return self._edges[index]
+
+    def __str__(self):
+        return self._edges.__str__()
+
+    def __repr__(self):
+        return self._edges.__repr__()
