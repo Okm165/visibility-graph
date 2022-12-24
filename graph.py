@@ -24,6 +24,10 @@ class Vertex:
     def __hash__(self):
         return self.x.__hash__() ^ self.y.__hash__()
 
+    def __lt__(self, other):
+        # needed by Dijkstra PriorityQueue
+        return hash(self) < hash(other)
+
 
 class Edge:
     def __init__(self, vertex1, vertex2):
@@ -77,7 +81,7 @@ class Graph:
             self.add_edge(edge)
 
     def get_adjacent_edges(self, vert):
-        return list(self[vert])
+        return list(self.graph[vert])
 
     def get_adjacent_verticies(self, vert):
         return [edge.get_adjacent(vert) for edge in self[vert]]

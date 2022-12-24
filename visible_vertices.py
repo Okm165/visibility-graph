@@ -8,7 +8,7 @@ INFINITY = 10**(3)
 
 def visible_vertices(O: Vertex, graph: Graph) -> list:
     """ Takes vertex O and graph returns list of vertecies that are visible from O 
-        O(nlogn)
+        complexity: O(nlogn)
     """
     visible_verts = []
     verts = graph.get_verticies()

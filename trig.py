@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import cmp_to_key
 from math import sqrt
 from graph import Vertex, Edge
@@ -156,7 +158,6 @@ def cmp_edges(p: Edge, e1: Edge, e2: Edge):
         return -1
     else:
         # if distances are equal compare slopes
-
         if e1.v1 in e2:
             same_point = e1.v1
         else:
@@ -176,7 +177,7 @@ def cmp_edges(p: Edge, e1: Edge, e2: Edge):
             return 0
 
 
-class EdgeSet:  # works tested
+class EdgeSet:
     def __init__(self):
         self._edges = []
 
