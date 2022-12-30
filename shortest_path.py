@@ -3,8 +3,8 @@ from trig import distance
 from graph import *
 
 
-def dijkstra(graph: Graph, start: Vertex, end: Vertex) -> list:
-    """ Returns shortest path in graph between start and end as list of verticies """
+def dijkstra(graph: Graph, start: Vertex, stop: Vertex) -> list:
+    """ Returns shortest path in graph between start and end as list of edges """
     distances = {vertex: float('inf') for vertex in graph.get_verticies()}
     visited = {vertex: False for vertex in graph.get_verticies()}
     parents = {vertex: None for vertex in graph.get_verticies()}
@@ -28,8 +28,10 @@ def dijkstra(graph: Graph, start: Vertex, end: Vertex) -> list:
 
     # reconstruct shortest path
     path = []
-    curr = end
-    while curr is not None:
-        path.append(curr)
+    curr = stop
+    if curr is None:
+        return path
+    while parents[curr] is not None:
+        path.append(Edge(curr, parents[curr]))
         curr = parents[curr]
     return path

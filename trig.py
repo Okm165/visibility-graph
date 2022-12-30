@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from functools import cmp_to_key
-from math import sqrt
+from math import acos, sqrt
 from graph import Vertex, Edge
 
 
 INTER_ZT = 10**(-3)
-DIST_ZT = 10**(-4)
-
+DIST_ZT = 10**(-6)
+INFINITY = 10**(4)
 
 def ccw(A: Vertex, B: Vertex, C: Vertex):
     """ Return 1 if counter clockwise, -1 if clock wise, 0 if collinear """
@@ -72,12 +72,24 @@ def dot(v1: Vertex, v2: Vertex):
     return v1.x * v2.x + v1.y * v2.y
 
 
-def edge_in_polygon(O, vert, graph):
-    """Return true if the edge from O to vert goes into polygon"""
-    a = graph.get_adjacent_verticies(O)
-    a.append(vert)
-    a = sorted(a, key=cmp_to_key(cmp_angle_distance_factory(O)))
-    return a[1] == vert
+def polygon_cross(e: Edge, polygon: set) -> int:
+    """ returns number of times that horizontal edge from O to inf crosses polygon edges """
+    i_count = 0
+    for edge in polygon:
+        vert = edge_intersect(e, edge)
+        if vert:
+            i_count += 1
+    return i_count
+
+
+def edge_in_polygon(O: Vertex, vert: Vertex, graph):
+    """ returns true if the edge from O to vert goes into polygon """
+    mid = Vertex((O.x + vert.x) / 2, (O.y + vert.y) / 2)
+    crosses1 = polygon_cross(Edge(mid, Vertex(INFINITY, mid.y)), graph.polygons[O.id])
+    crosses2 = polygon_cross(Edge(O, vert), graph.polygons[O.id])
+    if crosses1 % 2 == 0 and crosses2 % 2 == 0:
+        return False
+    return True
 
 
 def cmp_angles(O: Vertex, A: Vertex, B: Vertex):
@@ -145,13 +157,14 @@ def edge_distance(e1: Edge, e2: Edge):
         return distance(e1.v1, v)
     return 0
 
-
 def cmp_edges(p: Edge, e1: Edge, e2: Edge):
     """ Compare e1 to e2 relative to edge p """
     if e1 == e2:
         return 0
     d_p_e1 = edge_distance(p, e1)
     d_p_e2 = edge_distance(p, e2)
+    print("dist1", d_p_e1)
+    print("dist2", d_p_e2)
     if d_p_e1 - d_p_e2 > DIST_ZT:
         return 1
     elif d_p_e1 - d_p_e2 < -DIST_ZT:
@@ -175,7 +188,6 @@ def cmp_edges(p: Edge, e1: Edge, e2: Edge):
             return 1
         else:
             return 0
-
 
 class EdgeSet:
     def __init__(self):
@@ -204,6 +216,7 @@ class EdgeSet:
         while lo < hi:
             mid = (hi+lo)//2
             cmp = cmp_edges(p, edge, self._edges[mid])
+            print(p, edge, self._edges[mid], cmp)
             if cmp < 0:
                 hi = mid
             elif cmp == 0:
