@@ -1,13 +1,13 @@
 from queue import PriorityQueue
-from trig import distance
+from trig import *
 from graph import *
 
 
 def dijkstra(graph: Graph, start: Vertex, stop: Vertex) -> list:
     """ Returns shortest path in graph between start and end as list of edges """
-    distances = {vertex: float('inf') for vertex in graph.get_verticies()}
-    visited = {vertex: False for vertex in graph.get_verticies()}
-    parents = {vertex: None for vertex in graph.get_verticies()}
+    distances = {vertex: float('inf') for vertex in graph.get_verts()}
+    visited = {vertex: False for vertex in graph.get_verts()}
+    parents = {vertex: None for vertex in graph.get_verts()}
 
     Q = PriorityQueue()
     distances[start] = 0
@@ -16,7 +16,7 @@ def dijkstra(graph: Graph, start: Vertex, stop: Vertex) -> list:
 
     while not Q.empty():
         dist, vert = Q.get()
-        for neigh_vert in graph.get_adjacent_verticies(vert):
+        for neigh_vert in graph.get_adjacent_verts(vert):
             if visited[neigh_vert] == True:
                 continue
             new_dist = dist + distance(vert, neigh_vert)

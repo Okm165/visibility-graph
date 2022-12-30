@@ -1,47 +1,36 @@
 from collections import defaultdict
 
 
-class Vertex:
-    def __init__(self, x, y, id = None) -> None:
+class Vertex():
+    def __init__(self, x, y, polygon_id=-1):
         self.x = float(x)
         self.y = float(y)
-        self.id = id
+        self.polygon_id = polygon_id
 
-    def __mul__(self, val):
-        return Vertex(self.x*val, self.y*val)
-
-    def __eq__(self, vertex):
-        return vertex and self.x == vertex.x and self.y == vertex.y
-
-    def __ne__(self, vertex):
-        return not self.__eq__(vertex)
+    def __eq__(self, vert):
+        return vert and self.x == vert.x and self.y == vert.y
 
     def __str__(self):
-        return "(%.3f, %.3f)" % (self.x, self.y)
+        return "(%.2f, %.2f)" % (self.x, self.y)
 
     def __repr__(self):
-        return "Vertex(%.3f, %.3f)" % (self.x, self.y)
+        return "Vertex(%.2f, %.2f)" % (self.x, self.y)
 
     def __hash__(self):
         return self.x.__hash__() ^ self.y.__hash__()
 
-    def __lt__(self, other):
-        # needed by Dijkstra PriorityQueue
-        return hash(self) < hash(other)
+    def __lt__(self, vert):
+        return hash(self) < hash(vert)
 
-
-class Edge:
-    def __init__(self, vertex1, vertex2):
-        self.v1 = vertex1
-        self.v2 = vertex2
+class Edge():
+    def __init__(self, vert1, vert2):
+        self.v1 = vert1
+        self.v2 = vert2
 
     def get_adjacent(self, vert):
         if vert == self.v1:
             return self.v2
         return self.v1
-
-    def __contains__(self, vertex):
-        return self.v1 == vertex or self.v2 == vertex
 
     def __eq__(self, edge):
         if self.v1 == edge.v1 and self.v2 == edge.v2:
@@ -50,25 +39,25 @@ class Edge:
             return True
         return False
 
-    def __ne__(self, edge):
-        return not self.__eq__(edge)
-
     def __str__(self):
         return "({}, {})".format(self.v1, self.v2)
 
     def __repr__(self):
         return "Edge({!r}, {!r})".format(self.v1, self.v2)
 
+    def __contains__(self, vert):
+        return self.v1 == vert or self.v2 == vert
+
     def __hash__(self):
         return self.v1.__hash__() ^ self.v2.__hash__()
 
 
-class Graph:
-    def __init__(self, figs = None):
-        self.graph = defaultdict(set)
-        self.edges = set()
-        self.polygons = defaultdict(set) #set of edges
-        
+class Graph():
+    def __init__(self, figs=None):
+        self.graph = defaultdict(set)       # set of verticies
+        self.edges = set()                  # set of edges
+        self.polygons = defaultdict(set)    # set of polugons
+
         if figs is not None:
             poly_id = 0
             for fig in figs:
@@ -87,38 +76,23 @@ class Graph:
                 self.polygons[poly_id].add(edge)
                 poly_id += 1
 
-    def get_adjacent_edges(self, vert):
-        return list(self.graph[vert])
-
-    def get_adjacent_verticies(self, vert):
+    def get_adjacent_verts(self, vert):
         return [edge.get_adjacent(vert) for edge in self[vert]]
 
-    def get_verticies(self):
+    def get_verts(self):
         return list(self.graph)
 
     def get_edges(self):
         return self.edges
 
     def add_edge(self, edge):
+        self.edges.add(edge)
         self.graph[edge.v1].add(edge)
         self.graph[edge.v2].add(edge)
-        self.edges.add(edge)
-    
-    def add_vertex(self, vert):
+
+    def add_vert(self, vert):
         if vert not in self.graph:
             self.graph[vert] = set()
-
-    def __str__(self):
-        res = ""
-        for vertex in self.graph:
-            res += "\n" + str(vertex) + ": {"
-            for edge in self.graph[vertex]:
-                res += str(edge)
-            res += "}"
-        return res
-
-    def __repr__(self):
-        return self.__str__()
 
     def __contains__(self, item):
         if isinstance(item, Vertex):
@@ -127,10 +101,21 @@ class Graph:
             return item in self.edges
         return False
 
-    def __getitem__(self, item):
-        if item in self.graph:
-            return self.graph[item]
+    def __getitem__(self, vert):
+        if vert in self.graph:
+            return self.graph[vert]
         return set()
+
+    def __str__(self):
+        res = ""
+        for vert in self.graph:
+            res += "\n" + str(vert) + ": "
+            for edge in self.graph[vert]:
+                res += str(edge)
+        return res
+
+    def __repr__(self):
+        return self.__str__()
 
     def __or__(self, other):
         uni = Graph()

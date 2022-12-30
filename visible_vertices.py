@@ -1,78 +1,53 @@
 from trig import *
-from graph import *
-
-CCW = 1
-CW = -1
 
 
-def visible_vertices(O: Vertex, graph: Graph) -> list:
-    """ Takes vertex O and graph returns list of vertecies that are visible from O 
-        complexity: O(nlogn)
-    """
-    visible_verts = []
-    verts = graph.get_verticies()
+def visible_vertices(vert: Vertex, graph: Graph):
+    """Returns list of verts in graph visible by <vert> """
     edges = graph.get_edges()
-    verts = sort_by_angle_distance(O, verts)[1:]
-    if len(verts) == 0:
-        return visible_verts
+    verts = graph.get_verts()
+    verts.sort(key=lambda p: (angle(vert, p), distance(vert, p)))
 
-    # Initialize edge_set with any intersecting edges with p
+    # Initialize edge_set with any intersecting edges on the half line from
+    # vert along the positive x-axis
     edge_set = EdgeSet()
-
-    p = Edge(O, verts[0])
-    inf_p = Edge(O, (unit_vector(O, verts[0])*INFINITY))
-
+    vert_inf = Vertex(INF, vert.y)
     for edge in edges:
-        if O in edge:
+        if vert in edge:
             continue
-        if edge_intersect(inf_p, edge):
-            # if on_segment(inf_p.v1, edge.v1, inf_p.v2):
-            #     continue
-            # if on_segment(inf_p.v1, edge.v2, inf_p.v2):
-            #     continue
-            edge_set.insert(inf_p, edge)
+        if edge_intersect(vert, vert_inf, edge):
+            if on_segment(vert, edge.v1, vert_inf):
+                continue
+            if on_segment(vert, edge.v2, vert_inf):
+                continue
+            edge_set.insert(vert, vert_inf, edge)
 
-    # special first vert
-    if len(edge_set) > 0:
-        if not (edge_intersect(p, edge_set.smallest()) and edge_set.smallest() not in graph[verts[0]]):
-            visible_verts.append(verts[0])
-
-    for vert in verts[1:]:
-        if vert == O:
+    visible = []
+    for p in verts:
+        if p == vert:
             continue
-        p.v2 = vert
-        inf_p.v2 = unit_vector(O, vert)*INFINITY
-        # Update edge_set - remove counter clock wise edges incident on vert
-        if len(edge_set) > 0:
-            for edge in graph[vert]:
-                if ccw(O, vert, edge.get_adjacent(vert)) == CCW:
-                    print("del", edge)
-                    edge_set.delete(inf_p, edge)
-        # VISIBLE
-        visible = False
+
+        # Update edge_set - remove clock wise edges incident on p
+        if edge_set:
+            for edge in graph[p]:
+                if ccw(vert, p, edge.get_adjacent(p)) == CW:
+                    edge_set.delete(vert, p, edge)
+
+        # Check if p is visible from vert
+        is_visible = False
         if len(edge_set) == 0:
-            visible = True
-        elif not edge_intersect(p, edge_set.smallest()):
-            visible = True
+            is_visible = True
+        elif not edge_intersect(vert, p, edge_set.smallest()):
+            is_visible = True
         
-        print("set", edge_set)
-        print(visible)
+        if is_visible and p not in graph.get_adjacent_verts(vert):
+            is_visible = not edge_in_polygon(vert, p, graph)
 
-        if visible and vert not in graph.get_adjacent_verticies(O):
-            in_polygon = edge_in_polygon(O, vert, graph)
-            print(in_polygon)
-            visible = not in_polygon
-        print(visible)
+        if is_visible:
+            visible.append(p)
 
-        if visible:
-            visible_verts.append(vert)
-
-        # Update edge_set - Add clock wise edges incident on vert
-        for edge in graph[vert]:
-            if (O not in edge) and ccw(O, vert, edge.get_adjacent(vert)) == CW:
-                print("add", edge)
-                edge_set.insert(inf_p, edge)
+        # Update edge_set - Add counter clock wise edges incident on p
+        for edge in graph[p]:
+            if (vert not in edge) and ccw(vert, p, edge.get_adjacent(p)) == CCW:
+                edge_set.insert(vert, p, edge)
         
-        print("set", edge_set)
-
-    return visible_verts
+    return visible
