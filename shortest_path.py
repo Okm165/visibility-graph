@@ -4,8 +4,8 @@ from graph import *
 
 
 def dijkstra(graph: Graph, start: Vertex, stop: Vertex) -> list:
-    """ Returns shortest path in graph between start and end as list of edges """
-    distances = {vertex: float('inf') for vertex in graph.get_verts()}
+    """Returns shortest path in graph between start and end as list of edges"""
+    distances = {vertex: float("inf") for vertex in graph.get_verts()}
     visited = {vertex: False for vertex in graph.get_verts()}
     parents = {vertex: None for vertex in graph.get_verts()}
 

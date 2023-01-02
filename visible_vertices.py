@@ -2,7 +2,7 @@ from trig import *
 
 
 def visible_vertices(vert: Vertex, graph: Graph):
-    """Returns list of verts in graph visible by <vert> """
+    """returns list of verts in graph visible by <vert>"""
     edges = graph.get_edges()
     verts = graph.get_verts()
     verts.sort(key=lambda p: (angle(vert, p), distance(vert, p)))
@@ -38,9 +38,9 @@ def visible_vertices(vert: Vertex, graph: Graph):
             is_visible = True
         elif not edge_intersect(vert, p, edge_set.smallest()):
             is_visible = True
-        
+
         if is_visible and p not in graph.get_adjacent_verts(vert):
-            is_visible = not edge_in_polygon(vert, p, graph)
+            is_visible = not edge_into_polygon(vert, p, graph)
 
         if is_visible:
             visible.append(p)
@@ -49,5 +49,5 @@ def visible_vertices(vert: Vertex, graph: Graph):
         for edge in graph[p]:
             if (vert not in edge) and ccw(vert, p, edge.get_adjacent(p)) == CCW:
                 edge_set.insert(vert, p, edge)
-        
+
     return visible

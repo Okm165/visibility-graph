@@ -12,7 +12,10 @@ TOLERANCE = 1
 
 
 def dist(point1, point2):
-    return np.sqrt(np.power(point1[0] - point2[0], 2) + np.power(point1[1] - point2[1], 2))
+    return np.sqrt(
+        np.power(point1[0] - point2[0], 2) + np.power(point1[1] - point2[1], 2)
+    )
+
 
 # Klasa ta trzyma obecny stan wykresu oraz posiada metody, które mają zostać wykonane
 # po naciśnięciu przycisków.
@@ -104,9 +107,12 @@ class _Button_callback(object):
                 self.rect_points.append(new_point)
                 self.draw(autoscaling=False)
             elif len(self.rect_points) > 1:
-                if dist(self.rect_points[0], new_point) < (np.mean([self.ax.get_xlim(), self.ax.get_ylim()])*TOLERANCE):
-                    self.added_rects[-1].add([self.rect_points[-1],
-                                             self.rect_points[0]])
+                if dist(self.rect_points[0], new_point) < (
+                    np.mean([self.ax.get_xlim(), self.ax.get_ylim()]) * TOLERANCE
+                ):
+                    self.added_rects[-1].add(
+                        [self.rect_points[-1], self.rect_points[0]]
+                    )
                     self.new_rect()
                 else:
                     self.added_rects[-1].add([self.rect_points[-1], new_point])
@@ -124,17 +130,21 @@ class _Button_callback(object):
             xlim = self.ax.get_xlim()
             ylim = self.ax.get_ylim()
         self.ax.clear()
-        for collection in (self.scenes[self.i].points + self.added_points):
+        for collection in self.scenes[self.i].points + self.added_points:
             if len(collection.points) > 0:
                 self.ax.scatter(
-                    *zip(*(np.array(collection.points))), **collection.kwargs)
-        for collection in (self.scenes[self.i].lines + self.added_lines + self.added_rects):
+                    *zip(*(np.array(collection.points))), **collection.kwargs
+                )
+        for collection in (
+            self.scenes[self.i].lines + self.added_lines + self.added_rects
+        ):
             self.ax.add_collection(collection.get_collection())
         self.ax.autoscale(autoscaling)
         if not autoscaling:
             self.ax.set_xlim(xlim)
             self.ax.set_ylim(ylim)
         plt.draw()
+
 
 # Klasa Scene odpowiada za przechowywanie elementów, które mają być
 # wyświetlane równocześnie. Konkretnie jest to lista PointsCollection i
@@ -145,6 +155,7 @@ class Scene:
     def __init__(self, points=[], lines=[]):
         self.points = points
         self.lines = lines
+
 
 # Klasa PointsCollection gromadzi w sobie punkty jednego typu, a więc takie,
 # które zostaną narysowane w takim samym kolorze i stylu. W konstruktorze
@@ -160,6 +171,7 @@ class PointsCollection:
 
     def add_points(self, points):
         self.points = self.points + points
+
 
 # Klasa LinesCollection podobnie jak jej punktowy odpowiednik gromadzi
 # odcinki tego samego typu. Tworząc ją należy podać listę linii, gdzie każda
@@ -179,6 +191,7 @@ class LinesCollection:
     def get_collection(self):
         return mcoll.LineCollection(self.lines, **self.kwargs)
 
+
 # Klasa Plot jest najważniejszą klasą w całym programie, ponieważ agreguje
 # wszystkie przygotowane sceny, odpowiada za stworzenie wykresu i przechowuje
 # referencje na przyciski, dzięki czemu nie będą one skasowane podczas tzw.
@@ -193,9 +206,13 @@ class Plot:
                 self.scenes[0].points = points
                 self.scenes[0].lines = lines
         else:
-            self.scenes = [Scene([PointsCollection(pointsCol) for pointsCol in scene["points"]],
-                                 [LinesCollection(linesCol) for linesCol in scene["lines"]])
-                           for scene in js.loads(json)]
+            self.scenes = [
+                Scene(
+                    [PointsCollection(pointsCol) for pointsCol in scene["points"]],
+                    [LinesCollection(linesCol) for linesCol in scene["lines"]],
+                )
+                for scene in js.loads(json)
+            ]
 
     # Ta metoda ma szczególne znaczenie, ponieważ konfiguruje przyciski i
     # wykonuje tym samym dość skomplikowaną logikę. Zauważmy, że konfigurując każdy
@@ -208,15 +225,15 @@ class Plot:
         ax_add_point = plt.axes([0.44, 0.05, 0.15, 0.075])
         ax_add_line = plt.axes([0.28, 0.05, 0.15, 0.075])
         ax_add_rect = plt.axes([0.12, 0.05, 0.15, 0.075])
-        b_next = Button(ax_next, 'Następny')
+        b_next = Button(ax_next, "Następny")
         b_next.on_clicked(self.callback.next)
-        b_prev = Button(ax_prev, 'Poprzedni')
+        b_prev = Button(ax_prev, "Poprzedni")
         b_prev.on_clicked(self.callback.prev)
-        b_add_point = Button(ax_add_point, 'Dodaj punkt')
+        b_add_point = Button(ax_add_point, "Dodaj punkt")
         b_add_point.on_clicked(self.callback.add_point)
-        b_add_line = Button(ax_add_line, 'Dodaj linię')
+        b_add_line = Button(ax_add_line, "Dodaj linię")
         b_add_line.on_clicked(self.callback.add_line)
-        b_add_rect = Button(ax_add_rect, 'Dodaj figurę')
+        b_add_rect = Button(ax_add_rect, "Dodaj figurę")
         b_add_rect.on_clicked(self.callback.add_rect)
         return [b_prev, b_next, b_add_point, b_add_line, b_add_rect]
 
@@ -229,9 +246,17 @@ class Plot:
     # Metoda toJson() odpowiada za zapisanie stanu obiektu do ciągu znaków w
     # formacie JSON.
     def toJson(self):
-        return js.dumps([{"points": [np.array(pointCol.points).tolist() for pointCol in scene.points],
-                          "lines":[linesCol.lines for linesCol in scene.lines]}
-                         for scene in self.scenes])
+        return js.dumps(
+            [
+                {
+                    "points": [
+                        np.array(pointCol.points).tolist() for pointCol in scene.points
+                    ],
+                    "lines": [linesCol.lines for linesCol in scene.lines],
+                }
+                for scene in self.scenes
+            ]
+        )
 
     # Metoda ta zwraca punkty dodane w trakcie rysowania.
     def get_added_points(self):
@@ -258,7 +283,10 @@ class Plot:
     # jako scenę.
     def get_added_elements(self):
         if self.callback:
-            return Scene(self.callback.added_points, self.callback.added_lines+self.callback.added_rects)
+            return Scene(
+                self.callback.added_points,
+                self.callback.added_lines + self.callback.added_rects,
+            )
         else:
             return None
 
@@ -270,6 +298,6 @@ class Plot:
         self.widgets = self.__configure_buttons()
         ax = plt.axes(autoscale_on=False)
         self.callback.set_axes(ax)
-        fig.canvas.mpl_connect('button_press_event', self.callback.on_click)
+        fig.canvas.mpl_connect("button_press_event", self.callback.on_click)
         plt.show()
         self.callback.draw()

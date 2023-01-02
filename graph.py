@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 
-class Vertex():
+class Vertex:
     def __init__(self, x, y, polygon_id=-1):
         self.x = float(x)
         self.y = float(y)
@@ -22,7 +22,8 @@ class Vertex():
     def __lt__(self, vert):
         return hash(self) < hash(vert)
 
-class Edge():
+
+class Edge:
     def __init__(self, vert1, vert2):
         self.v1 = vert1
         self.v2 = vert2
@@ -52,11 +53,11 @@ class Edge():
         return self.v1.__hash__() ^ self.v2.__hash__()
 
 
-class Graph():
+class Graph:
     def __init__(self, figs=None):
-        self.graph = defaultdict(set)       # set of verticies
-        self.edges = set()                  # set of edges
-        self.polygons = defaultdict(set)    # set of polugons
+        self.graph = defaultdict(set)  # set of verticies
+        self.edges = set()  # set of edges
+        self.polygons = defaultdict(set)  # set of polugons
 
         if figs is not None:
             poly_id = 0
@@ -64,7 +65,7 @@ class Graph():
                 lines = fig.lines
                 first_vert = Vertex(lines[0][0][0], lines[0][0][1], poly_id)
                 prev_vert = first_vert
-                for i in range(len(lines)-1):
+                for i in range(len(lines) - 1):
                     next = lines[(i + 1) % len(lines)]
                     next_vert = Vertex(next[0][0], next[0][1], poly_id)
                     edge = Edge(prev_vert, next_vert)
