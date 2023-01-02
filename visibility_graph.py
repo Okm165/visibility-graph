@@ -24,6 +24,7 @@ class VisibilityGraph:
         return dijkstra(self.graph | self.visibility_graph, start, stop)
 
     def gen_vis_graph(self):
+        "appends all visible verticies from the vert and add scene"
         verts = self.graph.get_verts()
         for vert in verts:
             for edge in self.visible_from(vert):
@@ -39,6 +40,7 @@ class VisibilityGraph:
         return self.graph | self.visibility_graph
 
     def shortest_path_scene(self):
+        """add shortest path to visualization"""
         self.scenes.append(Scene(
             points = [PointsCollection([(self.start.x, self.start.y), (self.end.x, self.end.y)],
             color = "green")] , 
