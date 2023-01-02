@@ -25,6 +25,11 @@ class VisibilityGraph:
 
     def gen_vis_graph(self):
         "appends all visible verticies from the vert and add scene"
+        self.scenes.append(Scene(
+                points = 
+                [PointsCollection([(self.start.x, self.start.y), (self.end.x, self.end.y)], color = "green")], 
+                lines = 
+                [self.redlines] ))
         verts = self.graph.get_verts()
         for vert in verts:
             for edge in self.visible_from(vert):
